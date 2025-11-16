@@ -1,0 +1,10 @@
+[build]
+  # تحديد أن مجلد "functions" هو مكان وجود وظائف الخادم
+  functions = "functions"
+
+# هذا يقوم بإعادة توجيه أي طلب يأتي إلى /api/chat إلى وظيفة الخادم
+[[redirects]]
+  from = "/api/chat"
+  to = "/.netlify/functions/openai"
+  status = 200
+  force = true
