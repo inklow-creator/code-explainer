@@ -146,9 +146,15 @@ explainBtn.addEventListener("click", async () => {
                 })
             });
 
-            // ... (باقي الكود لمعالجة الرد) ...
+         const data = await response.json();
+
+
+            const explanation = data.choices?.[0]?.message?.content;
+
+            result.innerText = explanation || "ما قدرت أفهم الكود 😅";
         } catch (err) {
-            // ...
+            console.error("خطأ في الاتصال بالخادم الوسيط (Netlify):", err);
+            result.innerText = "صار خطأ أثناء الاتصال بالخادم الوسيط (Netlify). الرجاء التحقق من إعدادات المفتاح في Netlify.";
         }
     });
 </script>
