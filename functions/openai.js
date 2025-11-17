@@ -1,9 +1,6 @@
-// functions/openai.js
-
 const fetch = require('node-fetch');
 
 exports.handler = async (event) => {
-    // التحقق من طريقة الطلب
     if (event.httpMethod !== "POST") {
         return { statusCode: 405, body: "Method Not Allowed" };
     }
@@ -11,14 +8,14 @@ exports.handler = async (event) => {
     try {
         const requestBody = JSON.parse(event.body);
 
-        // **التغيير هنا: استقبال رسالتين منفصلتين**
-        const userCode = requestBody.user_code; // كود المستخدم
-        const systemPrompt = requestBody.system_prompt; // تعليمات النظام
+        // **التغيير هنا: استقبال رسالتي النظام والمستخدم**
+        const systemMessage = requestBody.system_message; 
+        const userMessage = requestBody.user_message; 
 
-        if (!userCode || !systemPrompt) {
+        if (!userMessage || !systemMessage) {
             return {
                 statusCode: 400,
-                body: JSON.stringify({ error: "Missing user_code or system_prompt" })
+                body: JSON.stringify({ error: "Missing system or user message" })
             };
         }
 
@@ -32,10 +29,10 @@ exports.handler = async (event) => {
             },
             body: JSON.stringify({
                 model: "gpt-3.5-turbo",
-                // **التغيير هنا: إرسال رسائل منفصلة لـ OpenAI**
+                // **إرسال الرسالتين بنفس هيكل الكود الأصلي**
                 messages: [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: `الكود المراد شرحه:\n\n${userCode}` }
+                    { role: "system", content: systemMessage },
+                    { role: "user", content: userMessage }
                 ],
                 temperature: 0.5
             })
@@ -53,20 +50,14 @@ exports.handler = async (event) => {
         return {
             statusCode: 200,
             body: JSON.stringify(data),
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Content-Type': 'application/json',
-            }
+            headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' }
         };
     } catch (error) {
         console.error("Netlify Function Error:", error);
         return {
             statusCode: 500,
             body: JSON.stringify({ error: "Internal Server Error during processing." }),
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Content-Type': 'application/json',
-            }
+            headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' }
         };
     }
 };
