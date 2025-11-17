@@ -3,31 +3,52 @@
 const fetch = require('node-fetch');
 
 exports.handler = async (event) => {
-    // هذا المتغير سيتم ملؤه تلقائياً بالمفتاح السري من إعدادات Netlify
-    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-
-    if (event.httpMethod !== 'POST' || !event.body) {
-        return { statusCode: 405, body: 'الطريقة غير مسموح بها' };
+    // التحقق من طريقة الطلب
+    if (event.httpMethod !== "POST") {
+        return { statusCode: 405, body: "Method Not Allowed" };
     }
 
     try {
         const requestBody = JSON.parse(event.body);
-        const userPrompt = requestBody.prompt;
 
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
+        // **التغيير هنا: استقبال رسالتين منفصلتين**
+        const userCode = requestBody.user_code; // كود المستخدم
+        const systemPrompt = requestBody.system_prompt; // تعليمات النظام
+
+        if (!userCode || !systemPrompt) {
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ error: "Missing user_code or system_prompt" })
+            };
+        }
+
+        const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
             headers: {
-                // استخدام المفتاح السري الآمن
-                'Authorization': `Bearer ${OPENAI_API_KEY}`,
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${OPENAI_API_KEY}`
             },
             body: JSON.stringify({
-                model: "gpt-3.5-turbo", // يمكنك تغيير النموذج هنا
-                messages: [{ role: "user", content: userPrompt }],
-            }),
+                model: "gpt-3.5-turbo",
+                // **التغيير هنا: إرسال رسائل منفصلة لـ OpenAI**
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: `الكود المراد شرحه:\n\n${userCode}` }
+                ],
+                temperature: 0.5
+            })
         });
 
         const data = await response.json();
+
+        if (data.error) {
+            return {
+                statusCode: 500,
+                body: JSON.stringify({ error: data.error.message })
+            };
+        }
 
         return {
             statusCode: 200,
@@ -38,9 +59,14 @@ exports.handler = async (event) => {
             }
         };
     } catch (error) {
+        console.error("Netlify Function Error:", error);
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: 'خطأ داخلي في الخادم الوسيط: ' + error.message }),
+            body: JSON.stringify({ error: "Internal Server Error during processing." }),
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Content-Type': 'application/json',
+            }
         };
     }
 };
