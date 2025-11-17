@@ -139,9 +139,9 @@ explainBtn.addEventListener("click", async () => {
                     "Content-Type": "application/json",
                     // حُذفت سطر الـ Authorization نهائيًا!
                 },
-                body: JSON.stringify({
-                    system_message: "اشرح الكود البرمجي للمستخدم بشكل مبسط، وواضح، ومختصر. لا تستخدم مصطلحات تقنية معقدة. يجب عليك تحليل محتوى الكود الموجود داخل علامات الكود الثلاثية.",
-                    user_message: `الكود المراد شرحه هو:\n\n\`\`\`\n${userCode}\n\`\`\``
+               body: JSON.stringify({
+                    system_message: "أنت مساعد برمجي وظيفته شرح أي كود برمجي يتم إدخاله إليك. يجب أن يكون شرحك موجزًا وواضحًا ومفهومًا للجميع.",
+                    user_message: `اشرح الكود التالي:\n\n\`\`\`\n${userCode}\n\`\`\``
                 })
             });
 
