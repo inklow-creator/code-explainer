@@ -126,32 +126,43 @@ button:hover{
     const codeInput = document.getElementById("codeInput");
     const result = document.getElementById("result");
 
-    explainBtn.addEventListener("click", async () => {
+explainBtn.addEventListener("click", async () => {
         const userCode = codeInput.value.trim();
-        // ... (التحقق من الكود) ...
+
+        if (!userCode) {
+            result.innerText = "الرجاء لصق الكود أولاً.";
+            return;
+        }
+
         result.innerText = "جاري الشرح... ✨";
 
+        // 2. دمج رسالة النظام ورسالة المستخدم في رسالة واحدة
+        const combinedPrompt = `اشرح الكود البرمجي للمستخدم بشكل مبسط، وواضح، ومختصر. لا تستخدم مصطلحات تقنية معقدة. الكود:\n\n${userCode}`;
+
         try {
-            const response = await fetch(PROXY_SERVER_URL, { 
+
+            const response = await fetch(PROXY_SERVER_URL, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    // لا يوجد سطر Authorization هنا!
+
                 },
                 body: JSON.stringify({
-                    // إرسال الرسالتين منفصلتين، وهذا يتطلب أن تكون قد دفعت التعديل الأخير لـ openai.js (راجع الرد السابق)
-                    user_code: userCode,
-                    system_prompt: SYSTEM_INSTRUCTIONS 
+
+                    prompt: combinedPrompt
                 })
             });
 
+
             const data = await response.json();
+
+
             const explanation = data.choices?.[0]?.message?.content;
 
             result.innerText = explanation || "ما قدرت أفهم الكود 😅";
         } catch (err) {
-            console.error("خطأ في الاتصال:", err);
-            result.innerText = "صار خطأ أثناء الاتصال بالخادم الوسيط.";
+            console.error("خطأ في الاتصال بالخادم الوسيط (Netlify):", err);
+            result.innerText = "صار خطأ أثناء الاتصال بالخادم الوسيط (Netlify). الرجاء التحقق من إعدادات المفتاح في Netlify.";
         }
     });
 </script>
